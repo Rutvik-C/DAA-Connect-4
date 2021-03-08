@@ -27,3 +27,4 @@ class TextFont(object):
 class Color(object):
     def __init__(self):
         self.yellow = (255, 238, 46)
+        self.dark_blue = (6, 28, 105)
