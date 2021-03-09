@@ -1,6 +1,17 @@
 import pygame
 
 
+class Essentials(object):
+    def __init__(self):
+        self.unit = 85
+        self.rows = 6
+        self.cols = 7
+        self.square_size = 85
+        self.radius = int(self.square_size / 2 - 5)
+        self.h_padding = 202
+        self.v_padding = 90
+
+
 class PlayMode(object):
     def __init__(self):
         # Declaring various playing modes
@@ -15,6 +26,7 @@ class Images(object):
     def __init__(self):
         # Loading all image files
         self.load = pygame.image.load("./images/connect4.png")
+        self.help = pygame.image.load("./images/help.png")
 
 
 class TextFont(object):
@@ -28,3 +40,5 @@ class Color(object):
     def __init__(self):
         self.yellow = (255, 238, 46)
         self.dark_blue = (6, 28, 105)
+        self.red = (255, 0, 0)
+        self.black = (0, 0, 0)
