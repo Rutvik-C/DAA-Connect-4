@@ -3,6 +3,12 @@ import pygame
 
 class Essentials(object):
     def __init__(self):
+        self.board = [[-1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1, -1, -1],
+                      [-1, -1, -1, -1, -1, -1, -1]]
         self.unit = 85
         self.rows = 6
         self.cols = 7
@@ -10,6 +16,8 @@ class Essentials(object):
         self.radius = int(self.square_size / 2 - 5)
         self.h_padding = 202
         self.v_padding = 90
+
+        self.turn = 0
 
 
 class PlayMode(object):
@@ -42,3 +50,4 @@ class Color(object):
         self.dark_blue = (6, 28, 105)
         self.red = (255, 0, 0)
         self.black = (0, 0, 0)
+        self.white = (255, 255, 255)
