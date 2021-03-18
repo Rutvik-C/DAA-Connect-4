@@ -1,4 +1,6 @@
 import math
+import random
+
 from classes import *
 from threading import Thread
 import time
@@ -23,6 +25,8 @@ user_turn = True
 initial = True
 t = None
 done = False
+lag = 0
+win_lag = 0
 
 
 def is_valid(c):
@@ -42,23 +46,61 @@ def make_move(c, player):
         print(i)
 
 
+def is_winner(player):
+
+    # HORIZONTAL WIN
+    for i in range(ess.rows):
+        for j in range(ess.cols - 3):
+            if ess.board[i][j] == player and ess.board[i][j + 1] == player and ess.board[i][j + 2] == player and ess.board[i][j + 3] == player:
+                return True
+
+    # VERTICAL WIN
+    for i in range(ess.rows - 3):
+        for j in range(ess.cols):
+            if ess.board[i][j] == player and ess.board[i + 1][j] == player and ess.board[i + 2][j] == player and ess.board[i + 3][j] == player:
+                return True
+
+    # FORWARD DIAGONAL WIN
+    for i in range(3, ess.rows):
+        for j in range(ess.cols - 3):
+            if ess.board[i][j] == player and ess.board[i - 1][j + 1] == player and ess.board[i - 2][j + 2] == player and ess.board[i - 3][j + 3] == player:
+                return True
+
+    # BACKWARD DIAGONAL WIN
+    for i in range(ess.rows - 3):
+        for j in range(ess.cols - 3):
+            if ess.board[i][j] == player and ess.board[i + 1][j + 1] == player and ess.board[i + 2][j + 2] == player and ess.board[i + 3][j + 3] == player:
+                return True
+
+    return False
+
+
 def AI_logic():
     global done
 
-    time.sleep(1)
+    c = random.randint(0, ess.cols - 1)
+    if is_valid(c):
+        make_move(c, ess.turn)
+
+    draw_board()
+
     done = True
 
 
 def play_AI():
-    global user_turn, t, done, initial
+    global user_turn, t, done, initial, play_state
 
-    # AI Logic
     if initial:
         initial, done = False, False
         t = Thread(target=AI_logic)
         t.start()
 
     if done:
+
+        if is_winner(ess.turn):
+            ess.winner = ess.turn
+            play_state = pm.win
+
         ess.turn = (ess.turn + 1) % 2
         user_turn = True
 
@@ -113,7 +155,11 @@ while active:
                 print("col:", column)
                 if 0 <= column <= 6 and is_valid(column) and user_turn:
                     print("Valid")
-                    make_move(column, 0)
+                    make_move(column, ess.turn)
+
+                    if is_winner(ess.turn):
+                        ess.winner = ess.turn
+                        play_state = pm.win
 
                     ess.turn = (ess.turn + 1) % 2
                     user_turn = False
@@ -160,12 +206,17 @@ while active:
         if ess.turn == 0:
             pygame.draw.circle(root, col.red, (100, 100), ess.radius // 2)
             user_turn = True
+            lag = 0
 
         elif ess.turn == 1:
             pygame.draw.circle(root, col.white, (100, 100), ess.radius // 2)
-            play_AI()
+            if lag == ess.lag:
+                play_AI()
 
-    # SINGLE PAGE
+            else:
+                lag += 1
+
+    # 2 PLAYER PAGE
     if play_state == pm.in_game_two_player:
         root.fill(col.dark_blue)
 
@@ -180,5 +231,14 @@ while active:
     # HELP PAGE
     if play_state == pm.info:
         root.blit(img.help, (0, 0))
+
+    if play_state == pm.win:
+        if win_lag == ess.win_lag:
+            root.fill(col.yellow)
+
+        else:
+            win_lag += 1
+            draw_board()
+            print(ess.winner, "HAS WON!")
 
     pygame.display.update()

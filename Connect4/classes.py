@@ -12,11 +12,14 @@ class Essentials(object):
         self.unit = 85
         self.rows = 6
         self.cols = 7
-        self.square_size = 85
-        self.radius = int(self.square_size / 2 - 5)
+        self.radius = int(self.unit / 2 - 5)
         self.h_padding = 202
         self.v_padding = 90
 
+        self.lag = 400
+        self.win_lag = 2000
+
+        self.winner = None
         self.turn = 0
 
 
