@@ -3,7 +3,6 @@ import random
 
 from classes import *
 from threading import Thread
-import time
 
 pygame.init()
 
@@ -27,60 +26,145 @@ t = None
 done = False
 lag = 0
 win_lag = 0
+win_line = [[], []]
 
 
 def is_valid(c):
+    """Checks if coin can be dropped in column c | There is at least one empty row in column c"""
+
     return ess.board[ess.rows - 1][c] == -1
 
 
-def make_move(c, player):
-    r = 0
+def get_all_valid():
+    """Returns all valid columns | Columns where coin can be dropped"""
+
+    val_locs = list()
+
+    for c in range(ess.cols):
+        if is_valid(c):
+            val_locs.append(c)
+
+    return val_locs
+
+
+def get_empty_row(c):
+    """For a particular column return the first empty row"""
+
     for r in range(ess.rows):
         if ess.board[r][c] == -1:
-            break
+            return r
+
+
+def make_move(c, player, board):
+    """Function to drop players coin"""
+
+    r = get_empty_row(c)
 
     print("put at r =", r, "c =", c)
-    ess.board[r][c] = player
+    board[r][c] = player
 
-    for i in ess.board:
+    for i in board:
         print(i)
 
 
 def is_winner(player):
+    """Function to check if there are 4 coins adjacent to each other | Function to check if anyone has won"""
+
+    global win_line
 
     # HORIZONTAL WIN
     for i in range(ess.rows):
         for j in range(ess.cols - 3):
             if ess.board[i][j] == player and ess.board[i][j + 1] == player and ess.board[i][j + 2] == player and ess.board[i][j + 3] == player:
+                win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)], [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)])
                 return True
 
     # VERTICAL WIN
     for i in range(ess.rows - 3):
         for j in range(ess.cols):
             if ess.board[i][j] == player and ess.board[i + 1][j] == player and ess.board[i + 2][j] == player and ess.board[i + 3][j] == player:
+                win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
+                            [ess.h_padding + int(j * ess.unit + ess.unit / 2),
+                            600 - int((i + 3) * ess.unit + ess.unit / 2)])
+
                 return True
 
     # FORWARD DIAGONAL WIN
     for i in range(3, ess.rows):
         for j in range(ess.cols - 3):
             if ess.board[i][j] == player and ess.board[i - 1][j + 1] == player and ess.board[i - 2][j + 2] == player and ess.board[i - 3][j + 3] == player:
+                win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
+                            [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2),
+                            600 - int((i - 3) * ess.unit + ess.unit / 2)])
+
                 return True
 
     # BACKWARD DIAGONAL WIN
     for i in range(ess.rows - 3):
         for j in range(ess.cols - 3):
             if ess.board[i][j] == player and ess.board[i + 1][j + 1] == player and ess.board[i + 2][j + 2] == player and ess.board[i + 3][j + 3] == player:
+                win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
+                            [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2),
+                            600 - int((i + 3) * ess.unit + ess.unit / 2)])
+
                 return True
 
     return False
 
 
+def analyse_board(board, player):
+    """Check various patterns in the board"""
+    score = 0
+
+    # HORIZONTAL ANALYSIS
+    for ro in board:
+        for c in range(ess.cols - 3):
+            partial_row = ro[c: c + 4]
+
+            if partial_row.count(player) == 4:  # Winning move
+                score += 100
+
+            elif partial_row.count(player) == 3 and partial_row.count(-1) == 1:  # Made 3 in row
+                score += 10
+
+    return score
+
+
+def get_best_move():
+    """Traverse through all possibilities and select the best move"""
+
+    valid_locs = get_all_valid()
+
+    max_score = 0
+    max_score_from_col = random.choice(valid_locs)
+
+    print("===============CHECKING POSSIBILITIES===============")
+
+    for c in valid_locs:
+        alt_board = list()
+        for r in ess.board:
+            alt_board.append(r.copy())
+
+        make_move(c, ess.turn, alt_board)
+
+        score = analyse_board(alt_board, ess.turn)
+        if score > max_score:
+            max_score = score
+            max_score_from_col = c
+
+    print("===============max:", max_score, "from: col", max_score_from_col, "===============")
+
+    print("Max score =", max_score, ":: From col", max_score_from_col)
+    return max_score_from_col
+
+
 def AI_logic():
+    """Implementation of minimax algorithm | Decide where the bot will play"""
+
     global done
 
-    c = random.randint(0, ess.cols - 1)
-    if is_valid(c):
-        make_move(c, ess.turn)
+    c = get_best_move()
+    make_move(c, ess.turn, ess.board)
 
     draw_board()
 
@@ -88,6 +172,8 @@ def AI_logic():
 
 
 def play_AI():
+    """Thread implementation to avoid 'Not Responding' state"""
+
     global user_turn, t, done, initial, play_state
 
     if initial:
@@ -106,6 +192,8 @@ def play_AI():
 
 
 def draw_board():
+    """Convert the matrix into GUI"""
+
     pygame.draw.rect(root, col.black, (ess.h_padding, ess.v_padding, 595, 510))
     for r in range(ess.rows):
         for c in range(ess.cols):
@@ -120,6 +208,7 @@ def draw_board():
                 pygame.draw.circle(root, col.yellow, (ess.h_padding + int(c * ess.unit + ess.unit / 2), 600 - int(r * ess.unit + ess.unit / 2)), ess.radius)
 
 
+# MAIN
 while active:
 
     # Checking for all the occurring events
@@ -146,7 +235,7 @@ while active:
                 print("col:", column)
                 if 0 <= column <= 6 and is_valid(column):
                     print("Valid")
-                    make_move(column, ess.turn)
+                    make_move(column, ess.turn, ess.board)
 
                     ess.turn = (ess.turn + 1) % 2
 
@@ -155,7 +244,7 @@ while active:
                 print("col:", column)
                 if 0 <= column <= 6 and is_valid(column) and user_turn:
                     print("Valid")
-                    make_move(column, ess.turn)
+                    make_move(column, ess.turn, ess.board)
 
                     if is_winner(ess.turn):
                         ess.winner = ess.turn
@@ -238,7 +327,10 @@ while active:
 
         else:
             win_lag += 1
+
             draw_board()
-            print(ess.winner, "HAS WON!")
+            pygame.draw.line(root, col.white, win_line[0], win_line[1], 8)
+
+            # print(ess.winner, "HAS WON!")
 
     pygame.display.update()
