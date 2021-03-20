@@ -67,7 +67,7 @@ def make_move(c, player, board):
         print(i)
 
 
-def is_winner(player):
+def is_winner(board, player):
     """Function to check if there are 4 coins adjacent to each other | Function to check if anyone has won"""
 
     global win_line
@@ -75,14 +75,14 @@ def is_winner(player):
     # HORIZONTAL WIN
     for i in range(ess.rows):
         for j in range(ess.cols - 3):
-            if ess.board[i][j] == player and ess.board[i][j + 1] == player and ess.board[i][j + 2] == player and ess.board[i][j + 3] == player:
+            if board[i][j] == player and board[i][j + 1] == player and board[i][j + 2] == player and board[i][j + 3] == player:
                 win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)], [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)])
                 return True
 
     # VERTICAL WIN
     for i in range(ess.rows - 3):
         for j in range(ess.cols):
-            if ess.board[i][j] == player and ess.board[i + 1][j] == player and ess.board[i + 2][j] == player and ess.board[i + 3][j] == player:
+            if board[i][j] == player and board[i + 1][j] == player and board[i + 2][j] == player and board[i + 3][j] == player:
                 win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
                             [ess.h_padding + int(j * ess.unit + ess.unit / 2),
                             600 - int((i + 3) * ess.unit + ess.unit / 2)])
@@ -92,7 +92,7 @@ def is_winner(player):
     # FORWARD DIAGONAL WIN
     for i in range(3, ess.rows):
         for j in range(ess.cols - 3):
-            if ess.board[i][j] == player and ess.board[i - 1][j + 1] == player and ess.board[i - 2][j + 2] == player and ess.board[i - 3][j + 3] == player:
+            if board[i][j] == player and board[i - 1][j + 1] == player and board[i - 2][j + 2] == player and board[i - 3][j + 3] == player:
                 win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
                             [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2),
                             600 - int((i - 3) * ess.unit + ess.unit / 2)])
@@ -102,7 +102,7 @@ def is_winner(player):
     # BACKWARD DIAGONAL WIN
     for i in range(ess.rows - 3):
         for j in range(ess.cols - 3):
-            if ess.board[i][j] == player and ess.board[i + 1][j + 1] == player and ess.board[i + 2][j + 2] == player and ess.board[i + 3][j + 3] == player:
+            if board[i][j] == player and board[i + 1][j + 1] == player and board[i + 2][j + 2] == player and board[i + 3][j + 3] == player:
                 win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
                             [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2),
                             600 - int((i + 3) * ess.unit + ess.unit / 2)])
@@ -112,22 +112,86 @@ def is_winner(player):
     return False
 
 
+def get_partial_array_analysis(array, player):
+    """Check the pattern in given array"""
+    score = 0
+    other_player = (player + 1) % 2
+
+    # SCORING
+    if array.count(player) == 4:  # Winning move
+        score += 100
+
+    elif array.count(player) == 3 and array.count(-1) == 1:  # Made 3 in adjacent
+        score += 10
+
+    elif array.count(player) == 2 and array.count(-1) == 2:  # Made 2 in adjacent
+        score += 5
+
+    # BLOCKING
+    if array.count(other_player) == 3 and array.count(-1) == 1:  # Opponent 3 in adjacent
+        score -= 80
+
+    return score
+
+
 def analyse_board(board, player):
     """Check various patterns in the board"""
     score = 0
+
+    # CENTER COLUMN ADVANTAGE
+    center_col = list()
+    for ro in board:
+        center_col.append(ro[ess.cols // 2])
+    score += center_col.count(player) * 6
 
     # HORIZONTAL ANALYSIS
     for ro in board:
         for c in range(ess.cols - 3):
             partial_row = ro[c: c + 4]
 
-            if partial_row.count(player) == 4:  # Winning move
-                score += 100
+            score += get_partial_array_analysis(partial_row, player)
 
-            elif partial_row.count(player) == 3 and partial_row.count(-1) == 1:  # Made 3 in row
-                score += 10
+    # VERTICAL ANALYSIS
+    for c in range(ess.cols):
+        co = list()
+        for ro in board:
+            co.append(ro[c])
+
+        for r in range(ess.rows - 3):
+            partial_col = co[r: r + 4]
+
+            score += get_partial_array_analysis(partial_col, player)
+
+    # BACKWARD DIAGONAL
+    for r in range(ess.rows - 3):
+        for c in range(ess.cols - 3):
+            partial_b_diag = [board[r + x][c + x] for x in range(4)]
+
+            score += get_partial_array_analysis(partial_b_diag, player)
+
+    # FORWARD DIAGONAL
+    for r in range(ess.rows - 3):
+        for c in range(ess.cols - 3):
+            partial_f_diag = [board[r + 3 - x][c + x] for x in range(4)]
+
+            score += get_partial_array_analysis(partial_f_diag, player)
 
     return score
+
+
+def minimax(board, depth, maximising_player):
+    if depth == 0 or is_winner(board, 0) or is_winner(board, 1) or len(get_all_valid()) == 0:  # depth is 0 or we are at terminal node
+        if depth == 0:
+            return analyse_board(board, 1)
+
+        elif is_winner(board, 1):  # Winning move, Max priority
+            return 10 ** 9
+
+        elif is_winner(board, 0):  # Losing move, Min priority
+            return -10 ** 9
+
+        else:  # No more valid location, Game draw
+            return 0
 
 
 def get_best_move():
@@ -135,7 +199,7 @@ def get_best_move():
 
     valid_locs = get_all_valid()
 
-    max_score = 0
+    max_score = -float("infinity")
     max_score_from_col = random.choice(valid_locs)
 
     print("===============CHECKING POSSIBILITIES===============")
@@ -183,7 +247,7 @@ def play_AI():
 
     if done:
 
-        if is_winner(ess.turn):
+        if is_winner(ess.board, ess.turn):
             ess.winner = ess.turn
             play_state = pm.win
 
@@ -246,7 +310,7 @@ while active:
                     print("Valid")
                     make_move(column, ess.turn, ess.board)
 
-                    if is_winner(ess.turn):
+                    if is_winner(ess.board, ess.turn):
                         ess.winner = ess.turn
                         play_state = pm.win
 
