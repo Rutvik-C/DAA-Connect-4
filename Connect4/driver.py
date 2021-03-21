@@ -29,42 +29,42 @@ win_lag = 0
 win_line = [[], []]
 
 
-def is_valid(c):
+def is_valid(board, c):
     """Checks if coin can be dropped in column c | There is at least one empty row in column c"""
 
-    return ess.board[ess.rows - 1][c] == -1
+    return board[ess.rows - 1][c] == -1
 
 
-def get_all_valid():
+def get_all_valid(board):
     """Returns all valid columns | Columns where coin can be dropped"""
 
     val_locs = list()
 
     for c in range(ess.cols):
-        if is_valid(c):
+        if is_valid(board, c):
             val_locs.append(c)
 
     return val_locs
 
 
-def get_empty_row(c):
+def get_empty_row(board, c):
     """For a particular column return the first empty row"""
 
     for r in range(ess.rows):
-        if ess.board[r][c] == -1:
+        if board[r][c] == -1:
             return r
 
 
 def make_move(c, player, board):
     """Function to drop players coin"""
 
-    r = get_empty_row(c)
+    r = get_empty_row(board, c)
 
-    print("put at r =", r, "c =", c)
+    print(player, "making move at ", r, c)
     board[r][c] = player
 
-    for i in board:
-        print(i)
+    # for i in board:
+    #     print(i)
 
 
 def is_winner(board, player):
@@ -129,7 +129,7 @@ def get_partial_array_analysis(array, player):
 
     # BLOCKING
     if array.count(other_player) == 3 and array.count(-1) == 1:  # Opponent 3 in adjacent
-        score -= 80
+        score -= 70
 
     return score
 
@@ -180,26 +180,71 @@ def analyse_board(board, player):
 
 
 def minimax(board, depth, maximising_player):
-    if depth == 0 or is_winner(board, 0) or is_winner(board, 1) or len(get_all_valid()) == 0:  # depth is 0 or we are at terminal node
-        if depth == 0:
-            return analyse_board(board, 1)
+    """Implementation of minimax algorithm | Bot is maximising, User is minimising"""
+    print("========================IN MINIMAX", depth, maximising_player, "====================================")
+    for i in board[:: -1]:
+        print(i)
 
-        elif is_winner(board, 1):  # Winning move, Max priority
-            return 10 ** 9
+    if depth == 0 or is_winner(board, 0) or is_winner(board, 1) or len(get_all_valid(board)) == 0:  # depth is 0 or we are at terminal node
+        print("Terminal")
 
-        elif is_winner(board, 0):  # Losing move, Min priority
-            return -10 ** 9
+        if is_winner(board, 0) or is_winner(board, 1) or len(get_all_valid(board)) == 0:
+            if is_winner(board, 1):  # Winning move, Max priority
+                return None, 10 ** 9
 
-        else:  # No more valid location, Game draw
-            return 0
+            elif is_winner(board, 0):  # Losing move, Min priority
+                return None, -10 ** 9
+
+            else:  # No more valid location, Game draw
+                return None, 0
+
+        else:
+            print("Returns:", analyse_board(board, 1))
+            return None, analyse_board(board, 1)
+
+    valid_cols = get_all_valid(board)
+
+    if maximising_player:
+        value = -math.inf
+        best_col = random.choice(valid_cols)
+        for c in valid_cols:
+            alt_board = list()
+            for r in board:
+                alt_board.append(r.copy())
+
+            make_move(c, 1, alt_board)  # maximise bot
+
+            x = minimax(alt_board, depth - 1, False)[1]
+            if x > value:
+                value = x
+                best_col = c
+
+        return best_col, value
+
+    else:
+        value = math.inf
+        best_col = random.choice(valid_cols)
+        for c in valid_cols:
+            alt_board = list()
+            for r in board:
+                alt_board.append(r.copy())
+
+            make_move(c, 0, alt_board)  # minimise player
+
+            x = minimax(alt_board, depth - 1, True)[1]
+            if x < value:
+                value = x
+                best_col = c
+
+        return best_col, value
 
 
 def get_best_move():
     """Traverse through all possibilities and select the best move"""
 
-    valid_locs = get_all_valid()
+    valid_locs = get_all_valid(ess.board)
 
-    max_score = -float("infinity")
+    max_score = -math.inf
     max_score_from_col = random.choice(valid_locs)
 
     print("===============CHECKING POSSIBILITIES===============")
@@ -227,7 +272,8 @@ def AI_logic():
 
     global done
 
-    c = get_best_move()
+    # c = get_best_move()
+    c = minimax(ess.board, 2, True)[0]
     make_move(c, ess.turn, ess.board)
 
     draw_board()
@@ -297,8 +343,8 @@ while active:
             if play_state == pm.in_game_two_player:  # TWO PLAYER MODE
                 column = int(math.floor((m[0] - ess.h_padding) / ess.unit))
                 print("col:", column)
-                if 0 <= column <= 6 and is_valid(column):
-                    print("Valid")
+                if 0 <= column <= 6 and is_valid(ess.board, column):
+                    # print("Valid")
                     make_move(column, ess.turn, ess.board)
 
                     ess.turn = (ess.turn + 1) % 2
@@ -306,8 +352,8 @@ while active:
             if play_state == pm.in_game_single_player:  # SINGLE PLAYER MODE
                 column = int(math.floor((m[0] - ess.h_padding) / ess.unit))
                 print("col:", column)
-                if 0 <= column <= 6 and is_valid(column) and user_turn:
-                    print("Valid")
+                if 0 <= column <= 6 and is_valid(ess.board, column) and user_turn:
+                    # print("Valid")
                     make_move(column, ess.turn, ess.board)
 
                     if is_winner(ess.board, ess.turn):

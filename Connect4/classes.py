@@ -16,7 +16,7 @@ class Essentials(object):
         self.h_padding = 202
         self.v_padding = 90
 
-        self.lag = 400
+        self.lag = 0
         self.win_lag = 2000
 
         self.winner = None
