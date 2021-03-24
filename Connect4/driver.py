@@ -29,6 +29,28 @@ win_lag = 0
 win_line = [[], []]
 
 
+def reset_game():
+    """Resets all game variables to initial"""
+
+    global play_state, game_mode, active, user_turn, initial, t, done, lag, win_lag, win_line
+
+    play_state = pm.load
+    active = True
+    user_turn = True
+    initial = True
+    t = None
+    done = False
+    lag = 0
+    win_lag = 0
+    win_line = [[], []]
+    ess.board = [[-1, -1, -1, -1, -1, -1, -1],
+                 [-1, -1, -1, -1, -1, -1, -1],
+                 [-1, -1, -1, -1, -1, -1, -1],
+                 [-1, -1, -1, -1, -1, -1, -1],
+                 [-1, -1, -1, -1, -1, -1, -1],
+                 [-1, -1, -1, -1, -1, -1, -1]]
+
+
 def is_valid(board, c):
     """Checks if coin can be dropped in column c | There is at least one empty row in column c"""
 
@@ -76,7 +98,9 @@ def is_winner(board, player):
     for i in range(ess.rows):
         for j in range(ess.cols - 3):
             if board[i][j] == player and board[i][j + 1] == player and board[i][j + 2] == player and board[i][j + 3] == player:
-                win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)], [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)])
+                win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
+                            [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2),
+                             600 - int(i * ess.unit + ess.unit / 2)])
                 return True
 
     # VERTICAL WIN
@@ -85,27 +109,29 @@ def is_winner(board, player):
             if board[i][j] == player and board[i + 1][j] == player and board[i + 2][j] == player and board[i + 3][j] == player:
                 win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
                             [ess.h_padding + int(j * ess.unit + ess.unit / 2),
-                            600 - int((i + 3) * ess.unit + ess.unit / 2)])
+                             600 - int((i + 3) * ess.unit + ess.unit / 2)])
 
                 return True
 
     # FORWARD DIAGONAL WIN
     for i in range(3, ess.rows):
         for j in range(ess.cols - 3):
-            if board[i][j] == player and board[i - 1][j + 1] == player and board[i - 2][j + 2] == player and board[i - 3][j + 3] == player:
+            if board[i][j] == player and board[i - 1][j + 1] == player and board[i - 2][j + 2] == player and \
+                    board[i - 3][j + 3] == player:
                 win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
                             [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2),
-                            600 - int((i - 3) * ess.unit + ess.unit / 2)])
+                             600 - int((i - 3) * ess.unit + ess.unit / 2)])
 
                 return True
 
     # BACKWARD DIAGONAL WIN
     for i in range(ess.rows - 3):
         for j in range(ess.cols - 3):
-            if board[i][j] == player and board[i + 1][j + 1] == player and board[i + 2][j + 2] == player and board[i + 3][j + 3] == player:
+            if board[i][j] == player and board[i + 1][j + 1] == player and board[i + 2][j + 2] == player and \
+                    board[i + 3][j + 3] == player:
                 win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
                             [ess.h_padding + int((j + 3) * ess.unit + ess.unit / 2),
-                            600 - int((i + 3) * ess.unit + ess.unit / 2)])
+                             600 - int((i + 3) * ess.unit + ess.unit / 2)])
 
                 return True
 
@@ -185,7 +211,8 @@ def minimax(board, depth, maximising_player):
     for i in board[:: -1]:
         print(i)
 
-    if depth == 0 or is_winner(board, 0) or is_winner(board, 1) or len(get_all_valid(board)) == 0:  # depth is 0 or we are at terminal node
+    if depth == 0 or is_winner(board, 0) or is_winner(board, 1) or len(
+            get_all_valid(board)) == 0:  # depth is 0 or we are at terminal node
         print("Terminal")
 
         if is_winner(board, 0) or is_winner(board, 1) or len(get_all_valid(board)) == 0:
@@ -239,32 +266,32 @@ def minimax(board, depth, maximising_player):
         return best_col, value
 
 
-def get_best_move():
-    """Traverse through all possibilities and select the best move"""
-
-    valid_locs = get_all_valid(ess.board)
-
-    max_score = -math.inf
-    max_score_from_col = random.choice(valid_locs)
-
-    print("===============CHECKING POSSIBILITIES===============")
-
-    for c in valid_locs:
-        alt_board = list()
-        for r in ess.board:
-            alt_board.append(r.copy())
-
-        make_move(c, ess.turn, alt_board)
-
-        score = analyse_board(alt_board, ess.turn)
-        if score > max_score:
-            max_score = score
-            max_score_from_col = c
-
-    print("===============max:", max_score, "from: col", max_score_from_col, "===============")
-
-    print("Max score =", max_score, ":: From col", max_score_from_col)
-    return max_score_from_col
+# def get_best_move():
+#     """Traverse through all possibilities and select the best move"""
+#
+#     valid_locs = get_all_valid(ess.board)
+#
+#     max_score = -math.inf
+#     max_score_from_col = random.choice(valid_locs)
+#
+#     print("===============CHECKING POSSIBILITIES===============")
+#
+#     for c in valid_locs:
+#         alt_board = list()
+#         for r in ess.board:
+#             alt_board.append(r.copy())
+#
+#         make_move(c, ess.turn, alt_board)
+#
+#         score = analyse_board(alt_board, ess.turn)
+#         if score > max_score:
+#             max_score = score
+#             max_score_from_col = c
+#
+#     print("===============max:", max_score, "from: col", max_score_from_col, "===============")
+#
+#     print("Max score =", max_score, ":: From col", max_score_from_col)
+#     return max_score_from_col
 
 
 def AI_logic():
@@ -273,7 +300,7 @@ def AI_logic():
     global done
 
     # c = get_best_move()
-    c = minimax(ess.board, 2, True)[0]
+    c = minimax(ess.board, 3, True)[0]
     make_move(c, ess.turn, ess.board)
 
     draw_board()
@@ -294,7 +321,7 @@ def play_AI():
     if done:
 
         if is_winner(ess.board, ess.turn):
-            ess.winner = ess.turn
+            ess.winner = "Bot"
             play_state = pm.win
 
         ess.turn = (ess.turn + 1) % 2
@@ -307,15 +334,21 @@ def draw_board():
     pygame.draw.rect(root, col.black, (ess.h_padding, ess.v_padding, 595, 510))
     for r in range(ess.rows):
         for c in range(ess.cols):
-            pygame.draw.circle(root, col.dark_blue, (int(c * ess.unit + ess.unit / 2 + ess.h_padding), int(r * ess.unit + ess.unit / 2 + ess.v_padding)), ess.radius)
+            pygame.draw.circle(root, col.bg_blue, (
+                int(c * ess.unit + ess.unit / 2 + ess.h_padding), int(r * ess.unit + ess.unit / 2 + ess.v_padding)),
+                               ess.radius)
 
     for r in range(ess.rows):
         for c in range(ess.cols):
             if ess.board[r][c] == 0:
-                pygame.draw.circle(root, col.red, (ess.h_padding + int(c * ess.unit + ess.unit / 2), 600 - int(r * ess.unit + ess.unit / 2)), ess.radius)
+                pygame.draw.circle(root, col.red, (
+                    ess.h_padding + int(c * ess.unit + ess.unit / 2), 600 - int(r * ess.unit + ess.unit / 2)),
+                                   ess.radius)
 
             elif ess.board[r][c] == 1:
-                pygame.draw.circle(root, col.yellow, (ess.h_padding + int(c * ess.unit + ess.unit / 2), 600 - int(r * ess.unit + ess.unit / 2)), ess.radius)
+                pygame.draw.circle(root, col.yellow, (
+                    ess.h_padding + int(c * ess.unit + ess.unit / 2), 600 - int(r * ess.unit + ess.unit / 2)),
+                                   ess.radius)
 
 
 # MAIN
@@ -328,17 +361,18 @@ while active:
         if inp.type == pygame.QUIT:
             active = False
 
-        # Mouse motion
-        if inp.type == pygame.MOUSEMOTION:
-            if play_state in (pm.in_game_two_player, pm.in_game_single_player) and ess.h_padding - 100 <= inp.pos[0] <= ess.h_padding + 595 + 100:
-                if 100 <= inp.pos[0] <= 500:
-                    pygame.draw.circle(root, col.red, (300, 47), ess.radius)
-                # pygame.display.update()
-
         # Mouse click Check
         if inp.type == pygame.MOUSEBUTTONDOWN:
             m = pygame.mouse.get_pos()  # Fetching mouse click location
             # print(m)
+
+            if 5 <= m[0] <= 50 and 5 <= m[1] <= 50:  # Back Button
+                if play_state == pm.info:
+                    play_state = pm.load
+
+                elif play_state == pm.in_game_two_player or play_state == pm.in_game_single_player:
+                    reset_game()
+                    play_state = pm.load
 
             if play_state == pm.in_game_two_player:  # TWO PLAYER MODE
                 column = int(math.floor((m[0] - ess.h_padding) / ess.unit))
@@ -357,27 +391,32 @@ while active:
                     make_move(column, ess.turn, ess.board)
 
                     if is_winner(ess.board, ess.turn):
-                        ess.winner = ess.turn
+                        ess.winner = "You"
                         play_state = pm.win
 
                     ess.turn = (ess.turn + 1) % 2
                     user_turn = False
                     initial = True
 
-            if (20 <= m[0] <= 45 and 155 <= m[1] <= 190) or (200 <= m[0] <= 230 and 155 <= m[1] <= 190):
+            if (20 <= m[0] <= 45 and 155 <= m[1] <= 190) or (
+                    200 <= m[0] <= 230 and 155 <= m[1] <= 190) and play_state == pm.load:
                 if game_mode == pm.in_game_two_player:
                     game_mode = pm.in_game_single_player
                 else:
                     game_mode = pm.in_game_two_player
 
-            if 25 <= m[0] <= 220 and 200 <= m[1] <= 280:  # play button
+            if 25 <= m[0] <= 220 and 200 <= m[1] <= 280 and play_state == pm.load:  # play button
                 if game_mode == pm.in_game_single_player:
                     play_state = pm.in_game_single_player
                 else:
                     play_state = pm.in_game_two_player
 
-            if 25 <= m[0] <= 220 and 340 <= m[1] <= 410:  # help button
+            if 25 <= m[0] <= 220 and 340 <= m[1] <= 410 and play_state == pm.load:  # help button
                 play_state = pm.info
+
+            if 90 <= m[0] <= 210 and 150 <= m[1] <= 270 and play_state == pm.win:
+                reset_game()
+                play_state = pm.load
 
     # HOME SCREEN
     if play_state == pm.load:
@@ -398,7 +437,8 @@ while active:
 
     # SINGLE PAGE
     if play_state == pm.in_game_single_player:
-        root.fill(col.dark_blue)
+        root.blit(img.background, (0, 0))
+        root.blit(img.back, (10, 10))
 
         draw_board()
 
@@ -408,7 +448,9 @@ while active:
             lag = 0
 
         elif ess.turn == 1:
-            pygame.draw.circle(root, col.white, (100, 100), ess.radius // 2)
+            text = pygame.font.Font(fnt.pacifico, 40).render("Thinking...", True, col.black)
+            root.blit(text, [420, 10])
+
             if lag == ess.lag:
                 play_AI()
 
@@ -417,7 +459,8 @@ while active:
 
     # 2 PLAYER PAGE
     if play_state == pm.in_game_two_player:
-        root.fill(col.dark_blue)
+        root.blit(img.background, (0, 0))
+        root.blit(img.back, (10, 10))
 
         draw_board()
 
@@ -430,17 +473,27 @@ while active:
     # HELP PAGE
     if play_state == pm.info:
         root.blit(img.help, (0, 0))
+        root.blit(img.back, (10, 10))
 
     if play_state == pm.win:
         if win_lag == ess.win_lag:
-            root.fill(col.yellow)
+
+            root.blit(img.win, (0, 0))
+
+            text = ess.winner
+            if text == "You":
+                text += " win!"
+            else:
+                text += " wins!"
+
+            text = pygame.font.Font(fnt.pacifico, 50).render(text, True, col.red)
+            root.blit(text, [50, 50])
+            root.blit(img.home, [90, 150])
 
         else:
             win_lag += 1
 
             draw_board()
             pygame.draw.line(root, col.white, win_line[0], win_line[1], 8)
-
-            # print(ess.winner, "HAS WON!")
 
     pygame.display.update()

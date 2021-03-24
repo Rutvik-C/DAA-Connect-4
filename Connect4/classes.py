@@ -17,9 +17,9 @@ class Essentials(object):
         self.v_padding = 90
 
         self.lag = 0
-        self.win_lag = 2000
+        self.win_lag = 1500
 
-        self.winner = None
+        self.winner = "Bot"
         self.turn = 0
 
 
@@ -38,6 +38,12 @@ class Images(object):
         # Loading all image files
         self.load = pygame.image.load("./images/connect4.png")
         self.help = pygame.image.load("./images/help.png")
+        self.background = pygame.image.load("./images/background.png")
+        self.mute = pygame.image.load("./images/mute.png")
+        self.unmute = pygame.image.load("./images/unmute.png")
+        self.win = pygame.image.load("./images/win.png")
+        self.back = pygame.image.load("./images/back.png")
+        self.home = pygame.image.load("./images/home.png")
 
 
 class TextFont(object):
@@ -50,7 +56,7 @@ class TextFont(object):
 class Color(object):
     def __init__(self):
         self.yellow = (255, 238, 46)
-        self.dark_blue = (6, 28, 105)
+        self.bg_blue = (69, 187, 255)
         self.red = (255, 0, 0)
         self.black = (0, 0, 0)
         self.white = (255, 255, 255)
