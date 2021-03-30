@@ -43,6 +43,7 @@ def reset_game():
     lag = 0
     win_lag = 0
     win_line = [[], []]
+    ess.turn = 0
     ess.board = [[-1, -1, -1, -1, -1, -1, -1],
                  [-1, -1, -1, -1, -1, -1, -1],
                  [-1, -1, -1, -1, -1, -1, -1],
@@ -85,8 +86,8 @@ def make_move(c, player, board):
     print(player, "making move at ", r, c)
     board[r][c] = player
 
-    # for i in board:
-    #     print(i)
+    for piece in board:
+        print(piece)
 
 
 def is_winner(board, player):
@@ -381,6 +382,13 @@ while active:
                     # print("Valid")
                     make_move(column, ess.turn, ess.board)
 
+                    if is_winner(ess.board, ess.turn):
+                        play_state = pm.win
+                        if ess.turn == 0:
+                            ess.winner = "Red"
+                        else:
+                            ess.winner = "Yellow"
+
                     ess.turn = (ess.turn + 1) % 2
 
             if play_state == pm.in_game_single_player:  # SINGLE PLAYER MODE
@@ -443,7 +451,12 @@ while active:
         draw_board()
 
         if ess.turn == 0:
-            pygame.draw.circle(root, col.red, (100, 100), ess.radius // 2)
+            bias = 230
+            valid = get_all_valid(ess.board)
+            for pos in range(7):
+                if pos in valid:
+                    root.blit(img.red_arrow, [bias + pos * 85, 20])
+
             user_turn = True
             lag = 0
 
@@ -464,11 +477,17 @@ while active:
 
         draw_board()
 
+        bias = 230
+        valid = get_all_valid(ess.board)
         if ess.turn == 0:
-            pygame.draw.circle(root, col.red, (100, 100), ess.radius // 2)
+            for pos in range(7):
+                if pos in valid:
+                    root.blit(img.red_arrow, [bias + pos * 85, 20])
 
         elif ess.turn == 1:
-            pygame.draw.circle(root, col.yellow, (100, 100), ess.radius // 2)
+            for pos in range(7):
+                if pos in valid:
+                    root.blit(img.yellow_arrow, [bias + pos * 85, 20])
 
     # HELP PAGE
     if play_state == pm.info:

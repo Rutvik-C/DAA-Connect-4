@@ -44,6 +44,8 @@ class Images(object):
         self.win = pygame.image.load("./images/win.png")
         self.back = pygame.image.load("./images/back.png")
         self.home = pygame.image.load("./images/home.png")
+        self.red_arrow = pygame.image.load("./images/red_arrow.png")
+        self.yellow_arrow = pygame.image.load("./images/yellow_arrow.png")
 
 
 class TextFont(object):
