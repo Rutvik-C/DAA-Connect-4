@@ -206,7 +206,7 @@ def analyse_board(board, player):
     return score
 
 
-def minimax(board, depth, maximising_player):
+def minimax(board, depth, alpha, beta, maximising_player):
     """Implementation of minimax algorithm | Bot is maximising, User is minimising"""
     print("========================IN MINIMAX", depth, maximising_player, "====================================")
     for i in board[:: -1]:
@@ -242,10 +242,14 @@ def minimax(board, depth, maximising_player):
 
             make_move(c, 1, alt_board)  # maximise bot
 
-            x = minimax(alt_board, depth - 1, False)[1]
+            x = minimax(alt_board, depth - 1, alpha, beta, False)[1]
             if x > value:
                 value = x
                 best_col = c
+
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                break
 
         return best_col, value
 
@@ -259,10 +263,14 @@ def minimax(board, depth, maximising_player):
 
             make_move(c, 0, alt_board)  # minimise player
 
-            x = minimax(alt_board, depth - 1, True)[1]
+            x = minimax(alt_board, depth - 1, alpha, beta, True)[1]
             if x < value:
                 value = x
                 best_col = c
+
+            beta = min(beta, value)
+            if alpha >= beta:
+                break
 
         return best_col, value
 
@@ -301,7 +309,7 @@ def AI_logic():
     global done
 
     # c = get_best_move()
-    c = minimax(ess.board, 3, True)[0]
+    c = minimax(ess.board, 3, -math.inf, math.inf, True)[0]
     make_move(c, ess.turn, ess.board)
 
     draw_board()
@@ -513,6 +521,7 @@ while active:
             win_lag += 1
 
             draw_board()
-            pygame.draw.line(root, col.white, win_line[0], win_line[1], 8)
+            if win_line != [None, None]:
+                pygame.draw.line(root, col.white, win_line[0], win_line[1], 8)
 
     pygame.display.update()
