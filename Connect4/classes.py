@@ -38,7 +38,7 @@ class Images(object):
         # Loading all image files
         self.load = pygame.image.load("./images/connect4.png")
         self.help = pygame.image.load("./images/help.png")
-        self.background = pygame.image.load("./images/background.png")
+        self.background = pygame.image.load("./images/wood_bg.png")
         self.mute = pygame.image.load("./images/mute.png")
         self.unmute = pygame.image.load("./images/unmute.png")
         self.win = pygame.image.load("./images/win.png")
@@ -46,6 +46,9 @@ class Images(object):
         self.home = pygame.image.load("./images/home.png")
         self.red_arrow = pygame.image.load("./images/red_arrow.png")
         self.yellow_arrow = pygame.image.load("./images/yellow_arrow.png")
+        self.player_1 = pygame.image.load("./images/player_1.png")
+        self.player_2 = pygame.image.load("./images/player_2.png")
+        self.dash = pygame.image.load("./images/minus-line.png")
 
 
 class TextFont(object):

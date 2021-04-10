@@ -25,8 +25,9 @@ initial = True
 t = None
 done = False
 lag = 0
-win_lag = 0
+win_lag = ess.win_lag
 win_line = [[], []]
+ess.winner = None
 
 
 def reset_game():
@@ -41,8 +42,9 @@ def reset_game():
     t = None
     done = False
     lag = 0
-    win_lag = 0
+    win_lag = ess.win_lag
     win_line = [[], []]
+    ess.winner = None
     ess.turn = 0
     ess.board = [[-1, -1, -1, -1, -1, -1, -1],
                  [-1, -1, -1, -1, -1, -1, -1],
@@ -247,9 +249,9 @@ def minimax(board, depth, alpha, beta, maximising_player):
                 value = x
                 best_col = c
 
-            alpha = max(alpha, value)
-            if alpha >= beta:
-                break
+            # alpha = max(alpha, value)
+            # if alpha >= beta:
+            #     break
 
         return best_col, value
 
@@ -268,9 +270,9 @@ def minimax(board, depth, alpha, beta, maximising_player):
                 value = x
                 best_col = c
 
-            beta = min(beta, value)
-            if alpha >= beta:
-                break
+            # beta = min(beta, value)
+            # if alpha >= beta:
+            #     break
 
         return best_col, value
 
@@ -320,7 +322,7 @@ def AI_logic():
 def play_AI():
     """Thread implementation to avoid 'Not Responding' state"""
 
-    global user_turn, t, done, initial, play_state
+    global user_turn, t, done, initial, play_state, win_lag
 
     if initial:
         initial, done = False, False
@@ -330,7 +332,8 @@ def play_AI():
     if done:
 
         if is_winner(ess.board, ess.turn):
-            ess.winner = "Bot"
+            ess.winner = "JARVIS"
+            win_lag = 0
             play_state = pm.win
 
         ess.turn = (ess.turn + 1) % 2
@@ -392,6 +395,7 @@ while active:
 
                     if is_winner(ess.board, ess.turn):
                         play_state = pm.win
+                        win_lag = 0
                         if ess.turn == 0:
                             ess.winner = "Red"
                         else:
@@ -456,21 +460,27 @@ while active:
         root.blit(img.background, (0, 0))
         root.blit(img.back, (10, 10))
 
+        root.blit(img.player_1, (50, 100))
+        root.blit(img.player_2, (825, 100))
+        text = pygame.font.Font(fnt.joe_fin, 30).render("YOU", True, col.red)
+        root.blit(text, [77, 240])
+        text = pygame.font.Font(fnt.joe_fin, 30).render("JARVIS", True, col.yellow)
+        root.blit(text, [837, 240])
+
         draw_board()
 
+        # All positions filled
+        if len(get_all_valid(ess.board)) == 0:
+            play_state = pm.win
+
         if ess.turn == 0:
-            bias = 230
-            valid = get_all_valid(ess.board)
-            for pos in range(7):
-                if pos in valid:
-                    root.blit(img.red_arrow, [bias + pos * 85, 20])
+            root.blit(img.dash, (80, 245))
 
             user_turn = True
             lag = 0
 
         elif ess.turn == 1:
-            text = pygame.font.Font(fnt.pacifico, 40).render("Thinking...", True, col.black)
-            root.blit(text, [420, 10])
+            root.blit(img.dash, (855, 245))
 
             if lag == ess.lag:
                 play_AI()
@@ -483,19 +493,26 @@ while active:
         root.blit(img.background, (0, 0))
         root.blit(img.back, (10, 10))
 
+        root.blit(img.player_1, (50, 100))
+        root.blit(img.player_2, (825, 100))
+        text = pygame.font.Font(fnt.joe_fin, 30).render("RED", True, col.red)
+        root.blit(text, [80, 240])
+        text = pygame.font.Font(fnt.joe_fin, 30).render("YELLOW", True, col.yellow)
+        root.blit(text, [825, 240])
+
         draw_board()
+
+        # All positions filled
+        if len(get_all_valid(ess.board)) == 0:
+            play_state = pm.win
 
         bias = 230
         valid = get_all_valid(ess.board)
         if ess.turn == 0:
-            for pos in range(7):
-                if pos in valid:
-                    root.blit(img.red_arrow, [bias + pos * 85, 20])
+            root.blit(img.dash, (80, 245))
 
         elif ess.turn == 1:
-            for pos in range(7):
-                if pos in valid:
-                    root.blit(img.yellow_arrow, [bias + pos * 85, 20])
+            root.blit(img.dash, (855, 245))
 
     # HELP PAGE
     if play_state == pm.info:
@@ -507,11 +524,15 @@ while active:
 
             root.blit(img.win, (0, 0))
 
-            text = ess.winner
-            if text == "You":
-                text += " win!"
+            if ess.winner is not None:
+                text = ess.winner
+                if text == "You":
+                    text += " win!"
+                else:
+                    text += " wins!"
+
             else:
-                text += " wins!"
+                text = "Draw!"
 
             text = pygame.font.Font(fnt.pacifico, 50).render(text, True, col.red)
             root.blit(text, [50, 50])
