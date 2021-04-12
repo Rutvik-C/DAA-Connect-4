@@ -16,6 +16,12 @@ pm = PlayMode()
 img = Images()
 fnt = TextFont()
 col = Color()
+sound = Sound()
+
+pygame.mixer.music.load(sound.background)
+pygame.mixer.music.play(-1)  # continuous bg music
+pygame.mixer.music.set_volume(0.3)  # Setting background music volume
+music_on = True
 
 play_state = pm.load
 game_mode = pm.in_game_single_player
@@ -148,7 +154,7 @@ def get_partial_array_analysis(array, player):
 
     # SCORING
     if array.count(player) == 4:  # Winning move
-        score += 100
+        score += 10 ** 9
 
     elif array.count(player) == 3 and array.count(-1) == 1:  # Made 3 in adjacent
         score += 10
@@ -158,7 +164,7 @@ def get_partial_array_analysis(array, player):
 
     # BLOCKING
     if array.count(other_player) == 3 and array.count(-1) == 1:  # Opponent 3 in adjacent
-        score -= 70
+        score -= 100
 
     return score
 
@@ -249,9 +255,9 @@ def minimax(board, depth, alpha, beta, maximising_player):
                 value = x
                 best_col = c
 
-            # alpha = max(alpha, value)
-            # if alpha >= beta:
-            #     break
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                break
 
         return best_col, value
 
@@ -270,39 +276,11 @@ def minimax(board, depth, alpha, beta, maximising_player):
                 value = x
                 best_col = c
 
-            # beta = min(beta, value)
-            # if alpha >= beta:
-            #     break
+            beta = min(beta, value)
+            if alpha >= beta:
+                break
 
         return best_col, value
-
-
-# def get_best_move():
-#     """Traverse through all possibilities and select the best move"""
-#
-#     valid_locs = get_all_valid(ess.board)
-#
-#     max_score = -math.inf
-#     max_score_from_col = random.choice(valid_locs)
-#
-#     print("===============CHECKING POSSIBILITIES===============")
-#
-#     for c in valid_locs:
-#         alt_board = list()
-#         for r in ess.board:
-#             alt_board.append(r.copy())
-#
-#         make_move(c, ess.turn, alt_board)
-#
-#         score = analyse_board(alt_board, ess.turn)
-#         if score > max_score:
-#             max_score = score
-#             max_score_from_col = c
-#
-#     print("===============max:", max_score, "from: col", max_score_from_col, "===============")
-#
-#     print("Max score =", max_score, ":: From col", max_score_from_col)
-#     return max_score_from_col
 
 
 def AI_logic():
@@ -310,9 +288,10 @@ def AI_logic():
 
     global done
 
-    # c = get_best_move()
+    print("***************************************AI***************************************")
     c = minimax(ess.board, 3, -math.inf, math.inf, True)[0]
     make_move(c, ess.turn, ess.board)
+    print("***************************************AI***************************************")
 
     draw_board()
 

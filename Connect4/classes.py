@@ -44,8 +44,6 @@ class Images(object):
         self.win = pygame.image.load("./images/win.png")
         self.back = pygame.image.load("./images/back.png")
         self.home = pygame.image.load("./images/home.png")
-        self.red_arrow = pygame.image.load("./images/red_arrow.png")
-        self.yellow_arrow = pygame.image.load("./images/yellow_arrow.png")
         self.player_1 = pygame.image.load("./images/player_1.png")
         self.player_2 = pygame.image.load("./images/player_2.png")
         self.dash = pygame.image.load("./images/minus-line.png")
@@ -65,3 +63,8 @@ class Color(object):
         self.red = (255, 0, 0)
         self.black = (0, 0, 0)
         self.white = (255, 255, 255)
+
+
+class Sound(object):
+    def __init__(self):
+        self.background = "./sound/bg.wav"
