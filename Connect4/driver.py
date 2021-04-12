@@ -34,19 +34,19 @@ lag = 0
 win_lag = ess.win_lag
 win_line = [[], []]
 ess.winner = None
-scoredict=dict()
-counter=0
-scoredict["RED"]=0
-scoredict["YELLOW"]=0
-scoredict["JARVIS"]=0
-scoredict["YOU"]=0
+scoredict = dict()
+counter = 0
+scoredict["RED"] = 0
+scoredict["YELLOW"] = 0
+scoredict["JARVIS"] = 0
+scoredict["YOU"] = 0
 
 
 def reset_game():
     """Resets all game variables to initial"""
 
-    global play_state, game_mode, active, user_turn, initial, t, done, lag, win_lag, win_line,scoredict,counter
-    counter=0
+    global play_state, game_mode, active, user_turn, initial, t, done, lag, win_lag, win_line, scoredict, counter
+    counter = 0
     play_state = pm.load
     active = True
     user_turn = True
@@ -64,7 +64,7 @@ def reset_game():
                  [-1, -1, -1, -1, -1, -1, -1],
                  [-1, -1, -1, -1, -1, -1, -1],
                  [-1, -1, -1, -1, -1, -1, -1]]
-    counter=0
+    counter = 0
 
 
 def is_valid(board, c):
@@ -122,7 +122,8 @@ def is_winner(board, player):
     # VERTICAL WIN
     for i in range(ess.rows - 3):
         for j in range(ess.cols):
-            if board[i][j] == player and board[i + 1][j] == player and board[i + 2][j] == player and board[i + 3][j] == player:
+            if board[i][j] == player and board[i + 1][j] == player and board[i + 2][j] == player and board[i + 3][
+                j] == player:
                 win_line = ([ess.h_padding + int(j * ess.unit + ess.unit / 2), 600 - int(i * ess.unit + ess.unit / 2)],
                             [ess.h_padding + int(j * ess.unit + ess.unit / 2),
                              600 - int((i + 3) * ess.unit + ess.unit / 2)])
@@ -300,6 +301,9 @@ def AI_logic():
     make_move(c, ess.turn, ess.board)
     print("***************************************AI***************************************")
 
+    if music_on:
+        sound.coin_drop.play()
+
     draw_board()
 
     done = True
@@ -362,9 +366,12 @@ while active:
         # Mouse click Check
         if inp.type == pygame.MOUSEBUTTONDOWN:
             m = pygame.mouse.get_pos()  # Fetching mouse click location
-            # print(m)
+            # print("MOUSE PTR", m)
 
             if 5 <= m[0] <= 50 and 5 <= m[1] <= 50:  # Back Button
+                if music_on:
+                    sound.click.play()
+
                 if play_state == pm.info:
                     play_state = pm.load
 
@@ -378,6 +385,9 @@ while active:
                 if 0 <= column <= 6 and is_valid(ess.board, column):
                     # print("Valid")
                     make_move(column, ess.turn, ess.board)
+
+                    if music_on:
+                        sound.coin_drop.play()
 
                     if is_winner(ess.board, ess.turn):
                         play_state = pm.win
@@ -396,6 +406,9 @@ while active:
                     # print("Valid")
                     make_move(column, ess.turn, ess.board)
 
+                    if music_on:
+                        sound.coin_drop.play()
+
                     if is_winner(ess.board, ess.turn):
                         ess.winner = "You"
                         play_state = pm.win
@@ -406,21 +419,44 @@ while active:
 
             if (20 <= m[0] <= 45 and 155 <= m[1] <= 190) or (
                     200 <= m[0] <= 230 and 155 <= m[1] <= 190) and play_state == pm.load:
+                if music_on:
+                    sound.click.play()
+                
                 if game_mode == pm.in_game_two_player:
                     game_mode = pm.in_game_single_player
                 else:
                     game_mode = pm.in_game_two_player
 
             if 25 <= m[0] <= 220 and 200 <= m[1] <= 280 and play_state == pm.load:  # play button
+                if music_on:
+                    sound.click.play()
+
                 if game_mode == pm.in_game_single_player:
                     play_state = pm.in_game_single_player
                 else:
                     play_state = pm.in_game_two_player
 
             if 25 <= m[0] <= 220 and 340 <= m[1] <= 410 and play_state == pm.load:  # help button
+                if music_on:
+                    sound.click.play()
                 play_state = pm.info
 
+            if 948 <= m[0] <= 980 and 10 <= m[1] <= 42 and play_state != pm.win:  # mute unmute
+                if music_on:
+                    sound.click.play()
+
+                if music_on:
+                    music_on = False
+                    pygame.mixer.music.pause()
+
+                else:
+                    music_on = True
+                    pygame.mixer.music.unpause()
+
             if 90 <= m[0] <= 210 and 150 <= m[1] <= 270 and play_state == pm.win:
+                if music_on:
+                    sound.click.play()
+
                 reset_game()
                 play_state = pm.load
 
@@ -432,6 +468,11 @@ while active:
         root.blit(text, [20, 150])
         text = pygame.font.Font(fnt.joe_fin, 50).render(">", True, col.red)
         root.blit(text, [200, 150])
+
+        if music_on:
+            root.blit(img.unmute, (948, 10))
+        else:
+            root.blit(img.mute, (948, 10))
 
         if game_mode == pm.in_game_single_player:
             text = pygame.font.Font(fnt.joe_fin, 40).render("P V AI", True, col.red)
@@ -452,6 +493,18 @@ while active:
         root.blit(text, [77, 240])
         text = pygame.font.Font(fnt.joe_fin, 30).render("JARVIS", True, col.yellow)
         root.blit(text, [837, 240])
+
+        text = pygame.font.Font(fnt.joe_fin, 50).render(str(scoredict["YOU"]), True, col.black)
+        root.blit(text, [430, 40])
+        text = pygame.font.Font(fnt.joe_fin, 50).render("_", True, col.black)
+        root.blit(text, [485, 30])
+        text = pygame.font.Font(fnt.joe_fin, 50).render(str(scoredict["JARVIS"]), True, col.black)
+        root.blit(text, [540, 40])
+
+        if music_on:
+            root.blit(img.unmute, (948, 10))
+        else:
+            root.blit(img.mute, (948, 10))
 
         draw_board()
 
@@ -486,6 +539,18 @@ while active:
         text = pygame.font.Font(fnt.joe_fin, 30).render("YELLOW", True, col.yellow)
         root.blit(text, [825, 240])
 
+        text = pygame.font.Font(fnt.joe_fin, 50).render(str(scoredict["RED"]), True, col.black)
+        root.blit(text, [430, 40])
+        text = pygame.font.Font(fnt.joe_fin, 50).render("_", True, col.black)
+        root.blit(text, [485, 30])
+        text = pygame.font.Font(fnt.joe_fin, 50).render(str(scoredict["YELLOW"]), True, col.black)
+        root.blit(text, [540, 40])
+
+        if music_on:
+            root.blit(img.unmute, (948, 10))
+        else:
+            root.blit(img.mute, (948, 10))
+
         draw_board()
 
         # All positions filled
@@ -505,17 +570,26 @@ while active:
         root.blit(img.help, (0, 0))
         root.blit(img.back, (10, 10))
 
+        if music_on:
+            root.blit(img.unmute, (948, 10))
+        else:
+            root.blit(img.mute, (948, 10))
+
     if play_state == pm.win:
         if win_lag == ess.win_lag:
 
             root.blit(img.win, (0, 0))
 
             if ess.winner is not None:
+
+                if music_on:
+                    sound.victory.play()
+
                 text = ess.winner
-                if counter==0:
-                    scoredict[(ess.winner).upper()]+=1
-                    print("TEST",scoredict[(ess.winner).upper()])
-                    counter=1
+                if counter == 0:
+                    scoredict[ess.winner.upper()] += 1
+                    print("TEST", scoredict[ess.winner.upper()])
+                    counter = 1
                 if text == "You":
                     text += " win!"
                 else:
@@ -524,7 +598,7 @@ while active:
             else:
                 text = "Draw!"
 
-            text = pygame.font.Font(fnt.pacifico, 50).render(text, True, col.red)
+            text = pygame.font.Font(fnt.pacifico, 50).render(text, True, col.black)
             root.blit(text, [50, 50])
             root.blit(img.home, [90, 150])
 

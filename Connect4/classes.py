@@ -68,5 +68,6 @@ class Color(object):
 class Sound(object):
     def __init__(self):
         self.background = "./sound/bg.wav"
-        self.click = pygame.mixer.Sound('./sound/Minecraft-hat.wav')
+        self.coin_drop = pygame.mixer.Sound('./sound/Minecraft-hat.wav')
         self.victory = pygame.mixer.Sound("./sound/victory.wav")
+        self.click = pygame.mixer.Sound("./sound/click.wav")
