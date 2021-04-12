@@ -101,8 +101,8 @@ def make_move(c, player, board):
     print(player, "making move at ", r, c)
     board[r][c] = player
 
-    for piece in board:
-        print(piece)
+    # for piece in board:
+    #     print(piece)
 
 
 def is_winner(board, player):
@@ -224,9 +224,9 @@ def analyse_board(board, player):
 
 def minimax(board, depth, alpha, beta, maximising_player):
     """Implementation of minimax algorithm | Bot is maximising, User is minimising"""
-    print("========================IN MINIMAX", depth, maximising_player, "====================================")
-    for i in board[:: -1]:
-        print(i)
+    print("==========IN MINIMAX", depth, maximising_player, "==========")
+    # for i in board[:: -1]:
+    #     print(i)
 
     if depth == 0 or is_winner(board, 0) or is_winner(board, 1) or len(
             get_all_valid(board)) == 0:  # depth is 0 or we are at terminal node
