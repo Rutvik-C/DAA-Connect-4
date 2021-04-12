@@ -1,6 +1,7 @@
 import pygame
 
 
+
 class Essentials(object):
     def __init__(self):
         self.board = [[-1, -1, -1, -1, -1, -1, -1],
