@@ -34,13 +34,19 @@ lag = 0
 win_lag = ess.win_lag
 win_line = [[], []]
 ess.winner = None
+scoredict=dict()
+counter=0
+scoredict["RED"]=0
+scoredict["YELLOW"]=0
+scoredict["JARVIS"]=0
+scoredict["YOU"]=0
 
 
 def reset_game():
     """Resets all game variables to initial"""
 
-    global play_state, game_mode, active, user_turn, initial, t, done, lag, win_lag, win_line
-
+    global play_state, game_mode, active, user_turn, initial, t, done, lag, win_lag, win_line,scoredict,counter
+    counter=0
     play_state = pm.load
     active = True
     user_turn = True
@@ -58,6 +64,7 @@ def reset_game():
                  [-1, -1, -1, -1, -1, -1, -1],
                  [-1, -1, -1, -1, -1, -1, -1],
                  [-1, -1, -1, -1, -1, -1, -1]]
+    counter=0
 
 
 def is_valid(board, c):
@@ -505,6 +512,10 @@ while active:
 
             if ess.winner is not None:
                 text = ess.winner
+                if counter==0:
+                    scoredict[(ess.winner).upper()]+=1
+                    print("TEST",scoredict[(ess.winner).upper()])
+                    counter=1
                 if text == "You":
                     text += " win!"
                 else:
